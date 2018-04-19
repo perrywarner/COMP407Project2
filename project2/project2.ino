@@ -47,6 +47,67 @@
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
+// used for Serial.read().
+char incoming_char; // each character on the line
+char incoming_message[30]; // whole message
+int index = 0; // for tracking each index of incoming_message
+
+// flags, need to refactor later
+bool message_sent = false; 
+bool more_messages = false;
+
+void serialRead(){ // have Arduino Serial check to see if any data is being sent its way.
+
+  if (message_sent){ 
+      // re-initialize Serial message variables if a message has already been sent
+      
+  }
+  
+  while(Serial.available() > 0){ // Don't read unless you know there is data.
+      
+      incoming_char = Serial.read(); // get a char from the Serial connect.
+      incoming_message[index] = incoming_char; // put the char into an array.
+      index++;
+      message_sent = true; // a message has been sent
+  }
+}
+
+void printLCDWithLibrary(){
+
+  // prompt the user
+  if(more_messages == false){
+      Serial.println("Waiting for input. Please enter your message to print out.");
+  }
+
+  serialRead();
+
+  // if a message has been sent AND there is nothing left in the Arduino Serial buffer
+  if((Serial.available() == -1 || Serial.available() == 0) && message_sent){
+      Serial.print("\n\nThe display should print: ");
+      Serial.println(incoming_message);
+      lcd.print(incoming_message); // print the whole message using the LCD library
+      
+
+      delay(1000);
+      Serial.print("\n\nWould you like to print another message? (Y)es or (N)o");
+      while(more_messages == false){
+        
+        serialRead();
+//        if(
+      }
+      
+  }
+
+}
+
+void printLCDWithoutLibrary(){
+
+  // HD447780U LCD display usage with no LCD library
+  
+}
+
+
+
 void setup() {
   // set up the LCD's number of columns and rows: 
   lcd.begin(16, 2);
@@ -54,15 +115,14 @@ void setup() {
   lcd.print("LCD initialized");
 
   delay(2000);
+  lcd.setCursor(0, 1);
+
+  Serial.begin(9600);
 }
 
 void loop() {
-  // set the cursor to column 0, line 1
-  // (note: line 1 is the second row, since counting begins with 0):
-  lcd.setCursor(0, 1);
-  // print the number of seconds since reset:
-  lcd.print(millis() / 1000);
-
   
+//  printLCDWithLibrary();
+  delay(1000);
   
 }
