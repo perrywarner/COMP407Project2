@@ -120,6 +120,10 @@ void writeCharacter(){
   //        3. step 6 on page 42 shows writing H to LCD - there are two steps:
   //          a. sendBitsLCD(1,0,0,1,0,0);
   //          b. sendBitsLCD(1,0,1,0,0,0);
+  //          sendBitsLCD()'s latter 4 params correspond with H's ascii code: 0100 1000
+  //        4. so, to write 'E' (0100 0101), we can use:
+  //          a. sendBitsLCD(1,0,0,1,0,0)
+  //          b. sendBitsLCD(1,0,0,1,0,1)
 }
 
 void initializeLCDWithoutLibrary(){
