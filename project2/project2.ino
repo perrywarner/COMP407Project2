@@ -100,9 +100,49 @@ void printLCDWithLibrary(){
 
 }
 
-void printLCDWithoutLibrary(){
+// send 0's or 1's to corresponding params
+// example: sendBitsLCD(0,0,0,0,1,0);
+void sendBitsLCD(int RS, int RW, int DB7, int DB6, int DB5, int DB4){
+
+  digitalWrite(12, RS);
+  // RW is already grounded
+  digitalWrite(2, DB7);
+  digitalWrite(3, DB6);
+  digitalWrite(4, DB5);
+  digitalWrite(5, DB4);
+  
+}
+
+void writeCharacter(){
+  // example: write 'E' to LCD
+  // steps: 1. get ascii code for 'E'. (0100 0101)
+  //        2. consult https://www.sparkfun.com/datasheets/LCD/HD44780.pdf documentation, page 42.
+  //        3. step 6 on page 42 shows writing H to LCD - there are two steps:
+  //          a. sendBitsLCD(1,0,0,1,0,0);
+  //          b. sendBitsLCD(1,0,1,0,0,0);
+}
+
+void initializeLCDWithoutLibrary(){
 
   // HD447780U LCD display usage with no LCD library
+  // LCD usage from https://www.sparkfun.com/datasheets/LCD/HD44780.pdf p. 42
+  // pin 11 is e pin
+
+  // 2. Function set:
+  sendBitsLCD(0,0,0,0,1,0);
+
+  // 4. Display on/off control:
+  sendBitsLCD(0,0,0,0,0,0);
+  sendBitsLCD(0,0,1,1,1,0);
+
+  // 5. Entry mode set:
+  sendBitsLCD(0,0,0,0,0,0);
+  sendBitsLCD(0,0,0,1,1,0);
+
+  // 6. Write data to CGRAM/DDRAM:
+  sendBitsLCD(1,0,0,1,0,0);
+  sendBitsLCD(1,0,1,0,0,0);
+  
   
 }
 
@@ -110,19 +150,20 @@ void printLCDWithoutLibrary(){
 
 void setup() {
   // set up the LCD's number of columns and rows: 
-  lcd.begin(16, 2);
+//  lcd.begin(16, 2);
   // Print a message to the LCD.
-  lcd.print("LCD initialized");
+//  lcd.print("LCD initialized");
 
-  delay(2000);
-  lcd.setCursor(0, 1);
+//  delay(2000);
+//  lcd.setCursor(0, 1);
 
   Serial.begin(9600);
 }
 
 void loop() {
-  
-//  printLCDWithLibrary();
+
+
+  initializeLCDWithoutLibrary();
   delay(1000);
   
 }
