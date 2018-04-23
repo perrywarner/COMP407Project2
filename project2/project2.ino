@@ -1,45 +1,3 @@
-/*
-  LiquidCrystal Library - Hello World
-
- Demonstrates the use a 16x2 LCD display.  The LiquidCrystal
- library works with all LCD displays that are compatible with the
- Hitachi HD44780 driver. There are many of them out there, and you
- can usually tell them by the 16-pin interface.
-
- This sketch prints "Hello World!" to the LCD
- and shows the time.
-
-  The circuit:
- * LCD RS pin to digital pin 12
- * LCD Enable pin to digital pin 11
- * LCD D4 pin to digital pin 5
- * LCD D5 pin to digital pin 4
- * LCD D6 pin to digital pin 3
- * LCD D7 pin to digital pin 2
- * LCD R/W pin to ground
- * LCD VSS pin to ground
- * LCD VCC pin to 5V
- * 10K resistor:
- * ends to +5V and ground
- * wiper to LCD VO pin (pin 3)
-
- Library originally added 18 Apr 2008
- by David A. Mellis
- library modified 5 Jul 2009
- by Limor Fried (http://www.ladyada.net)
- example added 9 Jul 2009
- by Tom Igoe
- modified 22 Nov 2010
- by Tom Igoe
- modified 7 Nov 2016
- by Arturo Guadalupi
-
- This example code is in the public domain.
-
- http://www.arduino.cc/en/Tutorial/LiquidCrystalHelloWorld
-
-*/
-//Include LCD library
 #include <LiquidCrystal.h>
 
 // initialize the library by associating any needed LCD interface pin
@@ -100,18 +58,46 @@ void printLCDWithLibrary(){
 
 }
 
+void myDelayMicros(int num_micros){
+  // could have used delayMicroseconds(), but Prof. Black likes this more.
+  uint8_t t = micros();
+  while(micros() - t < num_micros){
+    
+  }
+}
+
+void clock(){
+  // had to reverse-engineer the Arduino library to get this one right.
+  // https://github.com/arduino-libraries/LiquidCrystal/blob/master/src/LiquidCrystal.cpp
+  // similar to void LiquidCrystal::pulseEnable(void)
+  digitalWrite(11, LOW);
+  myDelayMicros(1);
+  digitalWrite(11, HIGH);
+  myDelayMicros(1);
+  digitalWrite(11, LOW);
+  // library says that commands need > microsec to settle.
+  myDelayMicros(100);
+}
+
+
 // send 0's or 1's to corresponding params
 // example: sendBitsLCD(0,0,0,0,1,0);
 void sendBitsLCD(int RS, int RW, int DB7, int DB6, int DB5, int DB4){
 
+  // Note: datasheet says that commands take up to 4.1ms to process. 
+  //       Thus, I choose to waste 10ms before LCD commands are sent.
+  delay(10);.
+
+  // Next: set each LCD pin value
   digitalWrite(12, RS);
-  // RW is already grounded
+  //       RW is already grounded
   digitalWrite(2, DB7);
   digitalWrite(3, DB6);
   digitalWrite(4, DB5);
   digitalWrite(5, DB4);
   
 }
+
 
 void writeCharacter(){
   // example: write 'E' to LCD
@@ -124,29 +110,35 @@ void writeCharacter(){
   //        4. so, to write 'E' (0100 0101), we can use:
   //          a. sendBitsLCD(1,0,0,1,0,0)
   //          b. sendBitsLCD(1,0,0,1,0,1)
+  //        5. note: E pin on LCD must also be pulsed between each character write.
+  //          a. I wrote a helper function clock() that handles this.
 }
 
 void initializeLCDWithoutLibrary(){
-
+  
+  
+  
   // HD447780U LCD display usage with no LCD library
   // LCD usage from https://www.sparkfun.com/datasheets/LCD/HD44780.pdf p. 42
-  // pin 11 is e pin
 
-  // 2. Function set:
+  // according to datasheet, we need at least 40ms after power rises above 2.7V
+  // before sending commands. Arduino can turn on way before 4.5V so we'll wait 50ms
+  delayMicroseconds(50000);
+
+  // 2. Function set (4 bit operation):
   sendBitsLCD(0,0,0,0,1,0);
-
+  // 3. Function set (4 bit operation, 1 line display, 5x8 font)
+  sendBitsLCD(0,0,0,0,1,0);
+  sendBitsLCD(0,0,0,0,0,0);
   // 4. Display on/off control:
   sendBitsLCD(0,0,0,0,0,0);
   sendBitsLCD(0,0,1,1,1,0);
-
   // 5. Entry mode set:
   sendBitsLCD(0,0,0,0,0,0);
   sendBitsLCD(0,0,0,1,1,0);
-
   // 6. Write data to CGRAM/DDRAM:
   sendBitsLCD(1,0,0,1,0,0);
   sendBitsLCD(1,0,1,0,0,0);
-  
   
 }
 
@@ -161,13 +153,23 @@ void setup() {
 //  delay(2000);
 //  lcd.setCursor(0, 1);
 
+  // Enable Arduino pins corresponding to:
+  // RS, E, D7, D6, D5, D4, in that order. 
+  pinMode(12, OUTPUT);
+  pinMode(11, OUTPUT);
+  pinMode(5, OUTPUT);
+  pinMode(4, OUTPUT);
+  pinMode(3, OUTPUT);
+  pinMode(2, OUTPUT);
+  
+
   Serial.begin(9600);
+  Serial.println("Initializing LCD display without library.");
+  initializeLCDWithoutLibrary();
 }
 
 void loop() {
 
-
-  initializeLCDWithoutLibrary();
   delay(1000);
   
 }
