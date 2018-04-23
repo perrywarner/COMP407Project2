@@ -2,8 +2,8 @@
 
 // initialize the library by associating any needed LCD interface pin
 // with the arduino pin number it is connected to
-const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
-LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+//const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+//LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 // used for Serial.read().
 char incoming_char; // each character on the line
@@ -71,12 +71,12 @@ void clock(){
   // https://github.com/arduino-libraries/LiquidCrystal/blob/master/src/LiquidCrystal.cpp
   // similar to void LiquidCrystal::pulseEnable(void)
   digitalWrite(11, LOW);
-  myDelayMicros(1);
+  myDelayMicros(1000);
   digitalWrite(11, HIGH);
-  myDelayMicros(1);
+  myDelayMicros(1000);
   digitalWrite(11, LOW);
   // library says that commands need > microsec to settle.
-  myDelayMicros(100);
+  myDelayMicros(1000);
 }
 
 
@@ -95,7 +95,7 @@ void sendBitsLCD(int RS, int RW, int DB7, int DB6, int DB5, int DB4){
   digitalWrite(3, DB6);
   digitalWrite(4, DB5);
   digitalWrite(5, DB4);
-  
+  clock();
 }
 
 
