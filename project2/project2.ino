@@ -1,4 +1,4 @@
-#include <LiquidCrystal.h>
+//#include <LiquidCrystal.h>
 
 // initialize the library by associating any needed LCD interface pin
 // with the arduino pin number it is connected to
@@ -43,7 +43,7 @@ void printLCDWithLibrary(){
   if((Serial.available() == -1 || Serial.available() == 0) && message_sent){
       Serial.print("\n\nThe display should print: ");
       Serial.println(incoming_message);
-      lcd.print(incoming_message); // print the whole message using the LCD library
+      //lcd.print(incoming_message); // print the whole message using the LCD library
       
 
       delay(1000);
@@ -64,6 +64,7 @@ void myDelayMicros(int num_micros){
   while(micros() - t < num_micros){
     
   }
+//  delay(1);
 }
 
 void clock(){
@@ -86,7 +87,7 @@ void sendBitsLCD(int RS, int RW, int DB7, int DB6, int DB5, int DB4){
 
   // Note: datasheet says that commands take up to 4.1ms to process. 
   //       Thus, I choose to waste 10ms before LCD commands are sent.
-  delay(10);.
+  delay(10);
 
   // Next: set each LCD pin value
   digitalWrite(12, RS);
@@ -98,8 +99,25 @@ void sendBitsLCD(int RS, int RW, int DB7, int DB6, int DB5, int DB4){
   clock();
 }
 
+void playChar(){
+ int bit = 0; 
+ 
+ zero();
+ for(int i=0; i<9; i++)
+ {
+  bit = currentchar & 1;
+  if (bit == 0){
+    zero();
+  }
+  else{
+    one();
+  }
+  currentchar = currentchar >> 1; 
+ }
+// char_is_empty = true;
+}
 
-void writeCharacter(){
+void writeCharacters(String chars){
   // example: write 'E' to LCD
   // steps: 1. get ascii code for 'E'. (0100 0101)
   //        2. consult https://www.sparkfun.com/datasheets/LCD/HD44780.pdf documentation, page 42.
@@ -112,6 +130,16 @@ void writeCharacter(){
   //          b. sendBitsLCD(1,0,0,1,0,1)
   //        5. note: E pin on LCD must also be pulsed between each character write.
   //          a. I wrote a helper function clock() that handles this.
+
+  int message_length = chars.length();
+  char current_char = '0';
+  for (int i = 0; i < message_length; i++){
+    current_char = chars.charAt(i);
+    // we have our char, now need to get the ASCII code
+    // Arduino chars are encoded as signed integer. Example: 'A' == 65
+    
+  }
+  
 }
 
 void initializeLCDWithoutLibrary(){
@@ -123,6 +151,8 @@ void initializeLCDWithoutLibrary(){
 
   // according to datasheet, we need at least 40ms after power rises above 2.7V
   // before sending commands. Arduino can turn on way before 4.5V so we'll wait 50ms
+
+  
   delayMicroseconds(50000);
 
   // 2. Function set (4 bit operation):
@@ -165,11 +195,14 @@ void setup() {
 
   Serial.begin(9600);
   Serial.println("Initializing LCD display without library.");
+  digitalWrite(11,0);
   initializeLCDWithoutLibrary();
 }
 
 void loop() {
 
+  writeCharacters("HELLO");
   delay(1000);
+  
   
 }
