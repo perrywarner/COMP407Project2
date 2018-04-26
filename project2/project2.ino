@@ -67,16 +67,19 @@ void myDelayMicros(int num_micros){
 //  delay(1);
 }
 
+// This function pulses the E (enable) pin, and is must be done after each character is sent to the LCD.
 void clock(){
-  // had to reverse-engineer the Arduino library to get this one right.
-  // https://github.com/arduino-libraries/LiquidCrystal/blob/master/src/LiquidCrystal.cpp
-  // similar to void LiquidCrystal::pulseEnable(void)
+  
+  /* I had to reverse-engineer the Arduino library to get this one right:
+   *  https://github.com/arduino-libraries/LiquidCrystal/blob/master/src/LiquidCrystal.cpp
+   *  My solution is similar to void LiquidCrystal::pulseEnable(void).
+   */
   digitalWrite(11, LOW);
   myDelayMicros(1000);
   digitalWrite(11, HIGH);
   myDelayMicros(1000);
   digitalWrite(11, LOW);
-  // library says that commands need > microsec to settle.
+  // library says that commands need > microsecond to settle. Prof. Black recommends a full millisecond.
   myDelayMicros(1000);
 }
 
@@ -91,30 +94,12 @@ void sendBitsLCD(int RS, int RW, int DB7, int DB6, int DB5, int DB4){
 
   // Next: set each LCD pin value
   digitalWrite(12, RS);
-  //       RW is already grounded
+  //       RW is already grounded. Whatever value is passed doesn't matter. 
   digitalWrite(2, DB7);
   digitalWrite(3, DB6);
   digitalWrite(4, DB5);
   digitalWrite(5, DB4);
-  clock();
-}
-
-void playChar(){
- int bit = 0; 
- 
- zero();
- for(int i=0; i<9; i++)
- {
-  bit = currentchar & 1;
-  if (bit == 0){
-    zero();
-  }
-  else{
-    one();
-  }
-  currentchar = currentchar >> 1; 
- }
-// char_is_empty = true;
+  clock(); 
 }
 
 void writeCharacters(String chars){
@@ -132,11 +117,30 @@ void writeCharacters(String chars){
   //          a. I wrote a helper function clock() that handles this.
 
   int message_length = chars.length();
-  char current_char = '0';
+  char current_char;
+  int message_bits[8];
   for (int i = 0; i < message_length; i++){
+    
     current_char = chars.charAt(i);
-    // we have our char, now need to get the ASCII code
-    // Arduino chars are encoded as signed integer. Example: 'A' == 65
+    /* We have our char, now need to get the ASCII code for each char.
+     *  'A' == 65 == 0b1000001
+     * Arduino chars are 1 byte, or 8 bits. We can only send 4 bits to LCD at a time!
+     * We can work around the limitation of quantity of bits to send
+     *  by breaking each char in half, like so:
+     */
+    
+    for (int j = 0; j < 8; j++){
+      // build up message_bits[] with each char bit, starting at [0], up to [7].
+      message_bits[j] = current_char & 1;
+      current_char = current_char >> 1;
+    }
+
+    // send the four higher order bits
+    // Remember: RS must be on, RW doesn't matter, and we want the message in order:
+    sendBitsLCD(1, 0, message_bits[7], message_bits[6], message_bits[5], message_bits[4]);
+    
+    // send the four lower order bits
+    sendBitsLCD(1, 0, message_bits[3], message_bits[2], message_bits[1], message_bits[0]);
     
   }
   
@@ -167,8 +171,8 @@ void initializeLCDWithoutLibrary(){
   sendBitsLCD(0,0,0,0,0,0);
   sendBitsLCD(0,0,0,1,1,0);
   // 6. Write data to CGRAM/DDRAM:
-  sendBitsLCD(1,0,0,1,0,0);
-  sendBitsLCD(1,0,1,0,0,0);
+//  sendBitsLCD(1,0,0,1,0,0);
+//  sendBitsLCD(1,0,1,0,0,0);
   
 }
 
@@ -196,12 +200,13 @@ void setup() {
   Serial.begin(9600);
   Serial.println("Initializing LCD display without library.");
   digitalWrite(11,0);
-  initializeLCDWithoutLibrary();
+  initializeLCDWithoutLibrary();  
+  writeCharacters("HELLO");
+  Serial.println("Attempting to send message: HELLO\n");
 }
 
 void loop() {
 
-  writeCharacters("HELLO");
   delay(1000);
   
   
