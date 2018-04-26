@@ -103,18 +103,18 @@ void sendBitsLCD(int RS, int RW, int DB7, int DB6, int DB5, int DB4){
 }
 
 void writeCharacters(String chars){
-  // example: write 'E' to LCD
-  // steps: 1. get ascii code for 'E'. (0100 0101)
-  //        2. consult https://www.sparkfun.com/datasheets/LCD/HD44780.pdf documentation, page 42.
-  //        3. step 6 on page 42 shows writing H to LCD - there are two steps:
-  //          a. sendBitsLCD(1,0,0,1,0,0);
-  //          b. sendBitsLCD(1,0,1,0,0,0);
-  //          sendBitsLCD()'s latter 4 params correspond with H's ascii code: 0100 1000
-  //        4. so, to write 'E' (0100 0101), we can use:
-  //          a. sendBitsLCD(1,0,0,1,0,0)
-  //          b. sendBitsLCD(1,0,0,1,0,1)
-  //        5. note: E pin on LCD must also be pulsed between each character write.
-  //          a. I wrote a helper function clock() that handles this.
+  /* example usage: write 'E' to LCD
+   *  First, consult https://www.sparkfun.com/datasheets/LCD/HD44780.pdf documentation, page 42.
+   *  step 6 on page 42 shows writing H to LCD - there are two steps:
+   *    a. sendBitsLCD(1,0,0,1,0,0);
+   *    b. sendBitsLCD(1,0,1,0,0,0);
+   *    sendBitsLCD()'s latter 4 params correspond with H's ascii code: 0100 1000
+   *  So, to write 'E' (0100 0101), we can use:
+   *    a. sendBitsLCD(1,0,0,1,0,0);
+   *    b. sendBitsLCD(1,0,0,1,0,1);
+   *  To finalize our character, E pin on LCD must also be pulsed between each character write.
+   *    I wrote a helper function clock() that handles this, so just call clock().
+   */
 
   int message_length = chars.length();
   char current_char;
