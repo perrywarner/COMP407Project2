@@ -178,12 +178,19 @@ void initializeLCDWithoutLibrary(){
 
 void serialBegin(int baud_rate) {
 
-	UCSR0A = 0;
 	uint16_t ubrr_full = 16000000 / (baud_rate * 16) - 1;
 	uint8_t ubrr_high = ubrr_full & 0xFF;
 	uint8_t ubrr_low = ubrr_full >> 8;
 	UBRR0H = ubrr_high;
 	UBRR0L = ubrr_low;
+
+	UCSR0A = 0b00000000;
+	UCSR0C = 0b00000110;
+
+	// when RXEN0 gets switched to 1, the serial port is enabled
+	int temp = UCSR0B; // preserve whatever data is in UCSR0B but change RXEN0 to 1 and UCSZ02 to 0
+	temp = temp | 0b00010100;
+	UCSR0B = temp;
 
 }
 
