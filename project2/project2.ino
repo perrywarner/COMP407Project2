@@ -176,7 +176,16 @@ void initializeLCDWithoutLibrary(){
   
 }
 
+void serialBegin(int baud_rate) {
 
+	UCSR0A = 0;
+	uint16_t ubrr_full = 16000000 / (baud_rate * 16) - 1;
+	uint8_t ubrr_high = ubrr_full & 0xFF;
+	uint8_t ubrr_low = ubrr_full >> 8;
+	UBRR0H = ubrr_high;
+	UBRR0L = ubrr_low;
+
+}
 
 void setup() {
   // set up the LCD's number of columns and rows: 
