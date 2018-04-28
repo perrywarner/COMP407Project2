@@ -212,6 +212,10 @@ int serialAvailable() {
 
 char serialRead() {
 	
+	if (serialAvailable()) {
+
+		return UDR0;
+	}
 	return 0;
 }
 
