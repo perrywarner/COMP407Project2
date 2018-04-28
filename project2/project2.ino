@@ -14,7 +14,7 @@ int index = 0; // for tracking each index of incoming_message
 bool message_sent = false; 
 bool more_messages = false;
 
-void serialRead(){ // have Arduino Serial check to see if any data is being sent its way.
+void serialReadFromSerial(){ // have Arduino Serial check to see if any data is being sent its way.
 
   if (message_sent){ 
       // re-initialize Serial message variables if a message has already been sent
@@ -37,7 +37,7 @@ void printLCDWithLibrary(){
       Serial.println("Waiting for input. Please enter your message to print out.");
   }
 
-  serialRead();
+  serialReadFromSerial();
 
   // if a message has been sent AND there is nothing left in the Arduino Serial buffer
   if((Serial.available() == -1 || Serial.available() == 0) && message_sent){
@@ -50,7 +50,7 @@ void printLCDWithLibrary(){
       Serial.print("\n\nWould you like to print another message? (Y)es or (N)o");
       while(more_messages == false){
         
-        serialRead();
+        serialReadFromSerial();
 //        if(
       }
       
@@ -178,7 +178,8 @@ void initializeLCDWithoutLibrary(){
 
 void serialBegin(int baud_rate) {
 
-	uint16_t ubrr_full = 16000000 / (baud_rate * 16) - 1;
+	baud_rate = 9600; // Prof Black said so
+	uint16_t ubrr_full = 16000000 / (baud_rate * 16.0) - 1;
 	uint8_t ubrr_high = ubrr_full & 0xFF;
 	uint8_t ubrr_low = ubrr_full >> 8;
 	UBRR0H = ubrr_high;
@@ -191,7 +192,27 @@ void serialBegin(int baud_rate) {
 	int temp = UCSR0B; // preserve whatever data is in UCSR0B but change RXEN0 to 1 and UCSZ02 to 0
 	temp = temp | 0b00010100;
 	UCSR0B = temp;
+	
+}
 
+int serialAvailable() {
+
+	// need to read RXC0 from UCSR0A for when a character is recieved
+	int temp = UCSR0A;
+	temp = temp & 0b10000000;
+	temp = temp >> 7;
+	if ((temp & 1) == 1) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+
+}
+
+char serialRead() {
+	
+	return 0;
 }
 
 void setup() {
