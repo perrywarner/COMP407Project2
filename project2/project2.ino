@@ -119,6 +119,7 @@ void writeCharacters(String chars){
   int message_length = chars.length();
   char current_char;
   int message_bits[8];
+
   for (int i = 0; i < message_length; i++){
     
     current_char = chars.charAt(i);
@@ -179,13 +180,21 @@ void initializeLCDWithoutLibrary(){
 void serialBegin(int baud_rate) {
 
 	baud_rate = 9600; // Prof Black said so
+
+	// (U)ART (B)aud (R)ate (R)egister
 	uint16_t ubrr_full = 16000000 / (baud_rate * 16.0) - 1;
 	uint8_t ubrr_high = ubrr_full & 0xFF;
 	uint8_t ubrr_low = ubrr_full >> 8;
 	UBRR0H = ubrr_high;
 	UBRR0L = ubrr_low;
 
-	UCSR0A = 0b00000000;
+	UCSR0A = 0b00000000; // Clear the UART port
+	
+	/* UCSR0C and UCSR0B set serial modes. Bit values correspond with settings
+	found in the tables at https://sites.google.com/site/qeewiki/books/avr-guide/usart
+	
+	UCSR0C: 00000110,	UCSR0B: XXX1X1XX (only set UCSR0B[4], [2])*/
+
 	UCSR0C = 0b00000110;
 
 	// when RXEN0 gets switched to 1, the serial port is enabled
@@ -197,7 +206,7 @@ void serialBegin(int baud_rate) {
 
 int serialAvailable() {
 
-	// need to read RXC0 from UCSR0A for when a character is recieved
+	// need to read RXC0 from UCSR0A. Flags when a character is received. Flag is changed by CPU.
 	int temp = UCSR0A;
 	temp = temp & 0b10000000;
 	temp = temp >> 7;
@@ -216,7 +225,9 @@ char serialRead() {
 
 		return UDR0;
 	}
-	return 0;
+	else {
+		return 0;
+	}
 }
 
 void setup() {
@@ -238,8 +249,12 @@ void setup() {
   pinMode(2, OUTPUT);
   
 
-  Serial.begin(9600);
-  Serial.println("Initializing LCD display without library.");
+  //Serial.begin(9600);
+  //Serial.println("Initializing LCD display without library.");
+  
+  serialBegin(9600);
+  Serial.println("Test");
+
   digitalWrite(11,0);
   initializeLCDWithoutLibrary();  
   writeCharacters("HELLO");
